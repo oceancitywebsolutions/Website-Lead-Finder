@@ -1,0 +1,48 @@
+name: Run Lead Finder
+
+on:
+  workflow_dispatch:
+    inputs:
+      towns:
+        description: "Space-separated town list (leave blank for the full list in config.py)"
+        required: false
+        default: ""
+      categories:
+        description: "Space-separated category list (leave blank for the full list in config.py)"
+        required: false
+        default: ""
+      limit:
+        description: "Stop after this many leads (leave blank for no limit)"
+        required: false
+        default: ""
+
+jobs:
+  find-leads:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - run: pip install -r requirements.txt
+
+      - name: Run lead finder
+        env:
+          GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
+          INPUT_TOWNS: ${{ github.event.inputs.towns }}
+          INPUT_CATEGORIES: ${{ github.event.inputs.categories }}
+          INPUT_LIMIT: ${{ github.event.inputs.limit }}
+        run: |
+          ARGS=()
+          if [ -n "$INPUT_TOWNS" ]; then ARGS+=(--towns $INPUT_TOWNS); fi
+          if [ -n "$INPUT_CATEGORIES" ]; then ARGS+=(--categories $INPUT_CATEGORIES); fi
+          if [ -n "$INPUT_LIMIT" ]; then ARGS+=(--limit "$INPUT_LIMIT"); fi
+          python lead_finder.py "${ARGS[@]}"
+
+      - name: Upload leads CSV
+        uses: actions/upload-artifact@v4
+        with:
+          name: leads-devon-cornwall
+          path: leads_devon_cornwall.csv

@@ -57,3 +57,22 @@ python lead_finder.py --towns Exeter Truro --categories plumber --limit 20
 
 Edit `TOWNS` and `CATEGORIES` in `config.py` to change geographic coverage or
 add/remove trade categories.
+
+## Running it via GitHub Actions instead
+
+If you'd rather not run this locally, there's a workflow that runs the same
+script on GitHub's servers and lets you download the CSV afterwards — handy
+from a phone/tablet with no terminal.
+
+1. Add your key as a repo secret: repo → **Settings** → **Secrets and
+   variables** → **Actions** → **New repository secret** → name it
+   `GOOGLE_PLACES_API_KEY`, paste your key as the value.
+2. Go to the **Actions** tab → **Run Lead Finder** workflow → **Run
+   workflow**. You can optionally fill in `towns` / `categories` / `limit` to
+   do a cheap test run first (e.g. towns: `Exeter`, categories: `plumber`,
+   limit: `10`) before running the full sweep with everything left blank.
+3. Once the run finishes (green check), open it and download the
+   `leads-devon-cornwall` artifact from the run summary page — that's your
+   CSV.
+
+This works the same from the GitHub mobile app as from a browser.
