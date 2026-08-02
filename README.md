@@ -41,15 +41,36 @@ longer available to new setups. Brave's is simpler anyway:
 2. Subscribe to the free "Data for AI" plan (no card-required trial gotchas).
 3. Copy the API key from the dashboard — this is your `BRAVE_API_KEY`.
 
-## 3. Install
+## 3. (Optional) Set up publishing to Google Sheets
+
+Skip this if you're happy with just the CSV. `publish_to_sheets.py` writes
+each run's leads into a **new tab** in a Google Sheet you already have -
+it never touches other tabs, so a hand-maintained tracking tab in the same
+spreadsheet is safe. Uses a service account (a robot account) so it can run
+headlessly with no login flow:
+
+1. In the same Google Cloud project, enable the **Google Sheets API**:
+   APIs & Services → Library → search "Google Sheets API" → Enable.
+2. Create a service account: IAM & Admin → Service Accounts → Create
+   Service Account → give it any name → Done (no project roles needed).
+3. Click into it → **Keys** tab → Add Key → Create new key → **JSON** -
+   this downloads a JSON key file. Keep it private, same as an API key.
+4. Open the JSON file and copy the `client_email` value (looks like
+   `something@your-project.iam.gserviceaccount.com`).
+5. Open your Google Sheet, click **Share**, and share it with that email
+   address with **Editor** access - exactly like sharing with a colleague.
+6. Copy the Sheet's ID from its URL: the long string between `/d/` and
+   `/edit` in `https://docs.google.com/spreadsheets/d/<SHEET_ID>/edit`.
+
+## 4. Install
 
 ```bash
 pip install -r requirements.txt
 cp .env.example .env
-# then edit .env: paste your Places API key, and your Brave key if using verification
+# then edit .env: paste your Places API key, and your Brave/Sheets keys if using those
 ```
 
-## 4. Run
+## 5. Run
 
 ```bash
 python lead_finder.py
@@ -83,6 +104,15 @@ before treating the lead as genuinely site-less. An empty value means
 either nothing turned up, or the business name was too generic to match
 confidently (e.g. mostly common words) — it's a hint, not a guarantee.
 
+Then, optionally, publish the results:
+
+```bash
+python publish_to_sheets.py
+```
+
+This creates a new tab named `Import <timestamp>` in your Google Sheet and
+writes the leads into it. Existing tabs are never touched.
+
 ## Customizing scope
 
 Edit `TOWNS` and `CATEGORIES` in `config.py` to change geographic coverage or
@@ -105,13 +135,21 @@ from a phone/tablet with no terminal.
 2. If you want website verification too, add a second repo secret
    `BRAVE_API_KEY` with the key from step 2 above. Without it, the workflow
    still runs — it just skips the verification step.
-3. Go to the **Actions** tab → **Run Lead Finder** workflow → **Run
+3. If you want Sheets publishing too, add two more repo secrets: paste the
+   **entire contents** of the service account JSON key file as
+   `GOOGLE_SERVICE_ACCOUNT_JSON`, and the Sheet ID from step 3 above as
+   `GOOGLE_SHEET_ID`. Without these, the workflow still runs — it just skips
+   the publish step.
+4. Go to the **Actions** tab → **Run Lead Finder** workflow → **Run
    workflow**. You can optionally fill in `towns` / `categories` / `limit` to
    do a cheap test run first (e.g. towns: `Exeter`, categories: `plumber`,
    limit: `10`) before running the full sweep with everything left blank.
-4. Once the run finishes (green check), open it and download the
+   `verify` and `publish` are on by default; untick either if you want a run
+   without them.
+5. Once the run finishes (green check), open it and download the
    `leads-devon-cornwall` artifact from the run summary page — that's your
    CSV, with the `possible_website_found` column included if verification
-   ran.
+   ran. If publishing ran, check your Google Sheet for a new
+   `Import <timestamp>` tab.
 
 This works the same from the GitHub mobile app as from a browser.

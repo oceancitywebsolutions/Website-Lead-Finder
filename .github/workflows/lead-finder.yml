@@ -20,6 +20,11 @@ on:
         required: false
         default: true
         type: boolean
+      publish:
+        description: "Also publish leads to a new Google Sheet tab? (needs the GOOGLE_SERVICE_ACCOUNT_JSON and GOOGLE_SHEET_ID secrets)"
+        required: false
+        default: true
+        type: boolean
 
 jobs:
   find-leads:
@@ -56,6 +61,18 @@ jobs:
             exit 0
           fi
           python verify_leads.py
+
+      - name: Publish to Google Sheet (optional)
+        if: ${{ github.event.inputs.publish != 'false' }}
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+        run: |
+          if [ -z "$GOOGLE_SERVICE_ACCOUNT_JSON" ] || [ -z "$GOOGLE_SHEET_ID" ]; then
+            echo "GOOGLE_SERVICE_ACCOUNT_JSON or GOOGLE_SHEET_ID secret not set, skipping publish."
+            exit 0
+          fi
+          python publish_to_sheets.py
 
       - name: Upload leads CSV
         if: always()
