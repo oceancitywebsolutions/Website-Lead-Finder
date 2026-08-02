@@ -58,6 +58,7 @@ jobs:
           python verify_leads.py
 
       - name: Upload leads CSV
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: leads-devon-cornwall

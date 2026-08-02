@@ -76,14 +76,33 @@ def find_possible_website(session, api_key, name, town):
 
 
 def verify_rows(rows, api_key, delay_seconds):
+    """Check each row against Brave, filling in possible_website_found.
+
+    If the API starts erroring (e.g. the account runs out of quota), further
+    calls are skipped rather than raised - all rows are still returned, with
+    unchecked ones left blank, so a mid-run API failure can't discard the
+    search results already found by lead_finder.py."""
     session = requests.Session()
+    stopped_early = False
+    attempted = 0
     for row in rows:
+        if stopped_early:
+            row["possible_website_found"] = ""
+            continue
+
         print(f"Checking: {row['name']}", file=sys.stderr)
-        row["possible_website_found"] = find_possible_website(
-            session, api_key, row["name"], row["town_searched"]
-        )
-        time.sleep(delay_seconds)
-        yield row
+        try:
+            row["possible_website_found"] = find_possible_website(
+                session, api_key, row["name"], row["town_searched"]
+            )
+            attempted += 1
+            time.sleep(delay_seconds)
+        except requests.exceptions.RequestException as e:
+            print(f"Stopping verification early after an API error: {e}", file=sys.stderr)
+            row["possible_website_found"] = ""
+            stopped_early = True
+
+    return rows, attempted
 
 
 def main():
@@ -109,7 +128,7 @@ def main():
         rows = list(reader)
         fieldnames = reader.fieldnames + ["possible_website_found"]
 
-    verified_rows = list(verify_rows(rows, api_key, args.delay))
+    verified_rows, attempted = verify_rows(rows, api_key, args.delay)
 
     with open(output_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -117,7 +136,11 @@ def main():
         writer.writerows(verified_rows)
 
     flagged = sum(1 for row in verified_rows if row["possible_website_found"])
-    print(f"Checked {len(verified_rows)} leads, {flagged} flagged for review. Written to {output_path}", file=sys.stderr)
+    skipped = len(verified_rows) - attempted
+    summary = f"Checked {attempted} of {len(verified_rows)} leads, {flagged} flagged for review."
+    if skipped:
+        summary += f" {skipped} left unchecked after an API error stopped verification early."
+    print(f"{summary} Written to {output_path}", file=sys.stderr)
 
 
 if __name__ == "__main__":
