@@ -31,6 +31,8 @@ STOP_WORDS = {
     "ltd", "limited", "services", "service", "the", "and", "co", "company",
     "plumbing", "plumbers", "electrical", "electricians", "building",
     "builders", "roofing", "roofers", "contractors", "solutions",
+    "hair", "hairdressing", "hairdressers", "beauty", "salon", "nails",
+    "nail", "studio",
 }
 
 

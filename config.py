@@ -20,6 +20,9 @@ CATEGORIES = [
     "electrician",
     "builder",
     "roofer",
+    "hairdresser",
+    "beauty salon",
+    "nail salon",
 ]
 
 # Domains that are directories/social platforms, not a business's own site.

@@ -1,8 +1,9 @@
 # Website Lead Finder
 
-Finds trade businesses (plumbers, electricians, builders, roofers) across Devon
-and Cornwall that have **no website listed on Google**, and exports them as a
-CSV lead list — good candidates for a "you need a website" pitch.
+Finds small businesses (plumbers, electricians, builders, roofers,
+hairdressers, beauty salons, nail salons) across Devon and Cornwall that have
+**no website listed on Google**, and exports them as a CSV lead list — good
+candidates for a "you need a website" pitch.
 
 It works by running a Google Places API (New) Text Search for each
 category/town combination (e.g. "plumber in Exeter, UK"), then keeping only
