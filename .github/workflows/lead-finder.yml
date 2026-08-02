@@ -47,10 +47,15 @@ jobs:
           python lead_finder.py "${ARGS[@]}"
 
       - name: Verify leads (optional)
-        if: ${{ github.event.inputs.verify != 'false' && secrets.BRAVE_API_KEY != '' }}
+        if: ${{ github.event.inputs.verify != 'false' }}
         env:
           BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
-        run: python verify_leads.py
+        run: |
+          if [ -z "$BRAVE_API_KEY" ]; then
+            echo "BRAVE_API_KEY secret not set, skipping verification."
+            exit 0
+          fi
+          python verify_leads.py
 
       - name: Upload leads CSV
         uses: actions/upload-artifact@v4
