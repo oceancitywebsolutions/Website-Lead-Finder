@@ -26,30 +26,26 @@ double-check rather than silently dropping them.
 4. Create an API key: APIs & Services → Credentials → Create Credentials →
    API key.
 5. Restrict the key (recommended): under API restrictions, limit it to
-   "Places API (New)" only — then loosen this to also allow "Custom Search
-   API" once you've done step 2 below, if you want website verification.
+   "Places API (New)" only.
 
 ## 2. (Optional) Set up website verification
 
 Skip this if you're happy just trusting the Places `websiteUri` field.
-`verify_leads.py` needs a Custom Search setup on the same project:
+`verify_leads.py` uses the [Brave Search API](https://brave.com/search/api/)
+rather than Google — Google restricted "search the entire web" Custom
+Search Engines to accounts created before September 2023, so it's no
+longer available to new setups. Brave's is simpler anyway:
 
-1. Enable the **Custom Search API**: APIs & Services → Library → search
-   "Custom Search API" → Enable.
-2. Create a search engine at
-   [programmablesearchengine.google.com](https://programmablesearchengine.google.com/):
-   "Add", set it to search the **entire web** (not specific sites), create
-   it, then copy its **Search engine ID** (this is your `GOOGLE_CSE_ID`).
-3. The free tier covers 100 queries/day; beyond that it's $5 per 1000, up
-   to 10,000/day — verifying a shortlist of leads (not the full search
-   matrix) stays cheap.
+1. Go to [brave.com/search/api](https://brave.com/search/api/) and sign up.
+2. Subscribe to the free "Data for AI" plan (no card-required trial gotchas).
+3. Copy the API key from the dashboard — this is your `BRAVE_API_KEY`.
 
 ## 3. Install
 
 ```bash
 pip install -r requirements.txt
 cp .env.example .env
-# then edit .env: paste your API key, and your CSE ID if using verification
+# then edit .env: paste your Places API key, and your Brave key if using verification
 ```
 
 ## 4. Run
@@ -101,8 +97,8 @@ from a phone/tablet with no terminal.
    variables** → **Actions** → **New repository secret** → name it
    `GOOGLE_PLACES_API_KEY`, paste your key as the value.
 2. If you want website verification too, add a second repo secret
-   `GOOGLE_CSE_ID` with the Search engine ID from step 2 above. Without it,
-   the workflow still runs — it just skips the verification step.
+   `BRAVE_API_KEY` with the key from step 2 above. Without it, the workflow
+   still runs — it just skips the verification step.
 3. Go to the **Actions** tab → **Run Lead Finder** workflow → **Run
    workflow**. You can optionally fill in `towns` / `categories` / `limit` to
    do a cheap test run first (e.g. towns: `Exeter`, categories: `plumber`,

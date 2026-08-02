@@ -16,7 +16,7 @@ on:
         required: false
         default: ""
       verify:
-        description: "Also verify leads with a web search? (needs the GOOGLE_CSE_ID secret)"
+        description: "Also verify leads with a web search? (needs the BRAVE_API_KEY secret)"
         required: false
         default: true
         type: boolean
@@ -47,10 +47,9 @@ jobs:
           python lead_finder.py "${ARGS[@]}"
 
       - name: Verify leads (optional)
-        if: ${{ github.event.inputs.verify != 'false' && secrets.GOOGLE_CSE_ID != '' }}
+        if: ${{ github.event.inputs.verify != 'false' && secrets.BRAVE_API_KEY != '' }}
         env:
-          GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
-          GOOGLE_CSE_ID: ${{ secrets.GOOGLE_CSE_ID }}
+          BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
         run: python verify_leads.py
 
       - name: Upload leads CSV
