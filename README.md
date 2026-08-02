@@ -6,7 +6,11 @@ CSV lead list — good candidates for a "you need a website" pitch.
 
 It works by running a Google Places API (New) Text Search for each
 category/town combination (e.g. "plumber in Exeter, UK"), then keeping only
-the results where Google has no `websiteUri` on file.
+the results where Google has no `websiteUri` on file. An optional second
+pass (`verify_leads.py`) re-checks each of those leads with a real web
+search, since Places sometimes has no website on file for a business that
+does actually have one — it flags possible matches for a quick manual
+double-check rather than silently dropping them.
 
 ## 1. Set up a Google Places API key
 
@@ -22,17 +26,33 @@ the results where Google has no `websiteUri` on file.
 4. Create an API key: APIs & Services → Credentials → Create Credentials →
    API key.
 5. Restrict the key (recommended): under API restrictions, limit it to
-   "Places API (New)" only.
+   "Places API (New)" only — then loosen this to also allow "Custom Search
+   API" once you've done step 2 below, if you want website verification.
 
-## 2. Install
+## 2. (Optional) Set up website verification
+
+Skip this if you're happy just trusting the Places `websiteUri` field.
+`verify_leads.py` needs a Custom Search setup on the same project:
+
+1. Enable the **Custom Search API**: APIs & Services → Library → search
+   "Custom Search API" → Enable.
+2. Create a search engine at
+   [programmablesearchengine.google.com](https://programmablesearchengine.google.com/):
+   "Add", set it to search the **entire web** (not specific sites), create
+   it, then copy its **Search engine ID** (this is your `GOOGLE_CSE_ID`).
+3. The free tier covers 100 queries/day; beyond that it's $5 per 1000, up
+   to 10,000/day — verifying a shortlist of leads (not the full search
+   matrix) stays cheap.
+
+## 3. Install
 
 ```bash
 pip install -r requirements.txt
 cp .env.example .env
-# then edit .env and paste your key in place of your-api-key-here
+# then edit .env: paste your API key, and your CSE ID if using verification
 ```
 
-## 3. Run
+## 4. Run
 
 ```bash
 python lead_finder.py
@@ -53,6 +73,19 @@ python lead_finder.py --towns Exeter Truro --categories plumber --limit 20
 - `--towns ...` / `--categories ...` — override the town/category lists in
   `config.py` for a single run.
 
+Then, optionally, verify the results:
+
+```bash
+python verify_leads.py
+```
+
+This re-checks each lead in `leads_devon_cornwall.csv` with a real web
+search and adds a `possible_website_found` column — a URL there means a
+plausible website turned up for that business, so double-check it manually
+before treating the lead as genuinely site-less. An empty value means
+either nothing turned up, or the business name was too generic to match
+confidently (e.g. mostly common words) — it's a hint, not a guarantee.
+
 ## Customizing scope
 
 Edit `TOWNS` and `CATEGORIES` in `config.py` to change geographic coverage or
@@ -67,12 +100,16 @@ from a phone/tablet with no terminal.
 1. Add your key as a repo secret: repo → **Settings** → **Secrets and
    variables** → **Actions** → **New repository secret** → name it
    `GOOGLE_PLACES_API_KEY`, paste your key as the value.
-2. Go to the **Actions** tab → **Run Lead Finder** workflow → **Run
+2. If you want website verification too, add a second repo secret
+   `GOOGLE_CSE_ID` with the Search engine ID from step 2 above. Without it,
+   the workflow still runs — it just skips the verification step.
+3. Go to the **Actions** tab → **Run Lead Finder** workflow → **Run
    workflow**. You can optionally fill in `towns` / `categories` / `limit` to
    do a cheap test run first (e.g. towns: `Exeter`, categories: `plumber`,
    limit: `10`) before running the full sweep with everything left blank.
-3. Once the run finishes (green check), open it and download the
+4. Once the run finishes (green check), open it and download the
    `leads-devon-cornwall` artifact from the run summary page — that's your
-   CSV.
+   CSV, with the `possible_website_found` column included if verification
+   ran.
 
 This works the same from the GitHub mobile app as from a browser.

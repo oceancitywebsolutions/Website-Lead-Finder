@@ -15,6 +15,11 @@ on:
         description: "Stop after this many leads (leave blank for no limit)"
         required: false
         default: ""
+      verify:
+        description: "Also verify leads with a web search? (needs the GOOGLE_CSE_ID secret)"
+        required: false
+        default: true
+        type: boolean
 
 jobs:
   find-leads:
@@ -40,6 +45,13 @@ jobs:
           if [ -n "$INPUT_CATEGORIES" ]; then ARGS+=(--categories $INPUT_CATEGORIES); fi
           if [ -n "$INPUT_LIMIT" ]; then ARGS+=(--limit "$INPUT_LIMIT"); fi
           python lead_finder.py "${ARGS[@]}"
+
+      - name: Verify leads (optional)
+        if: ${{ github.event.inputs.verify != 'false' && secrets.GOOGLE_CSE_ID != '' }}
+        env:
+          GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
+          GOOGLE_CSE_ID: ${{ secrets.GOOGLE_CSE_ID }}
+        run: python verify_leads.py
 
       - name: Upload leads CSV
         uses: actions/upload-artifact@v4
