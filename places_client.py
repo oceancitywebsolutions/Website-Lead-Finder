@@ -29,13 +29,15 @@ class PlacesClient:
         self.request_delay_seconds = request_delay_seconds
         self.session = requests.Session()
 
-    def search_text(self, text_query, page_token=None):
+    def search_text(self, text_query, page_token=None, included_type=None):
         headers = {
             "Content-Type": "application/json",
             "X-Goog-Api-Key": self.api_key,
             "X-Goog-FieldMask": FIELD_MASK + ",nextPageToken",
         }
         body = {"textQuery": text_query}
+        if included_type:
+            body["includedType"] = included_type
         if page_token:
             body["pageToken"] = page_token
 
@@ -50,11 +52,11 @@ class PlacesClient:
 
         response.raise_for_status()
 
-    def search_all_pages(self, text_query, max_pages=3):
+    def search_all_pages(self, text_query, max_pages=3, included_type=None):
         """Yield places across up to `max_pages` pages of results (20 per page)."""
         page_token = None
         for _ in range(max_pages):
-            data = self.search_text(text_query, page_token=page_token)
+            data = self.search_text(text_query, page_token=page_token, included_type=included_type)
             for place in data.get("places", []):
                 yield place
 

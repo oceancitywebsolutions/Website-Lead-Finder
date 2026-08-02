@@ -25,6 +25,20 @@ CATEGORIES = [
     "nail salon",
 ]
 
+# Maps each category to a Google Places "included type" so Text Search is
+# restricted to that business type server-side, instead of relying on free-
+# text relevance matching alone - which pads out results in small towns with
+# unrelated businesses (a vape shop showing up for "plumber in Saltash").
+CATEGORY_TYPES = {
+    "plumber": "plumber",
+    "electrician": "electrician",
+    "builder": "general_contractor",
+    "roofer": "roofing_contractor",
+    "hairdresser": "hair_salon",
+    "beauty salon": "beauty_salon",
+    "nail salon": "nail_salon",
+}
+
 # Domains that are directories/social platforms, not a business's own site.
 # A match against one of these in verify_leads.py is ignored rather than
 # treated as evidence the business already has a website.

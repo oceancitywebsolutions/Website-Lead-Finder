@@ -86,7 +86,12 @@ confidently (e.g. mostly common words) — it's a hint, not a guarantee.
 ## Customizing scope
 
 Edit `TOWNS` and `CATEGORIES` in `config.py` to change geographic coverage or
-add/remove trade categories.
+add/remove trade categories. If you add a category, also add an entry to
+`CATEGORY_TYPES` mapping it to a [Google Places type](https://developers.google.com/maps/documentation/places/web-service/place-types)
+- this restricts search results to that business type server-side, which
+keeps unrelated local businesses (a vape shop, a car wash) out of results
+for small towns with few genuine matches. A category left out of
+`CATEGORY_TYPES` still works, just without that filtering.
 
 ## Running it via GitHub Actions instead
 

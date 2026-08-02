@@ -9,7 +9,7 @@ import sys
 
 from dotenv import load_dotenv
 
-from config import CATEGORIES, TOWNS
+from config import CATEGORIES, CATEGORY_TYPES, TOWNS
 from places_client import PlacesClient
 
 DEFAULT_OUTPUT_PATH = "leads_devon_cornwall.csv"
@@ -48,9 +48,10 @@ def find_leads(client, towns, categories, limit=None):
     for town in towns:
         for category in categories:
             query = f"{category} in {town}, UK"
+            included_type = CATEGORY_TYPES.get(category)
             print(f"Searching: {query}", file=sys.stderr)
 
-            for place in client.search_all_pages(query):
+            for place in client.search_all_pages(query, included_type=included_type):
                 place_id = place.get("id")
                 if not place_id or place_id in seen_place_ids:
                     continue
