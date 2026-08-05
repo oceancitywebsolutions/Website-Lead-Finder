@@ -144,8 +144,10 @@ from a phone/tablet with no terminal.
    workflow**. You can optionally fill in `towns` / `categories` / `limit` to
    do a cheap test run first (e.g. towns: `Exeter`, categories: `plumber`,
    limit: `10`) before running the full sweep with everything left blank.
-   `verify` and `publish` are on by default; untick either if you want a run
-   without them.
+   Both fields are comma-separated, so multi-word entries work as one item -
+   e.g. categories: `hairdresser,beauty salon,nail salon` or towns:
+   `Exeter,Newton Abbot`. `verify` and `publish` are on by default; untick
+   either if you want a run without them.
 5. Once the run finishes (green check), open it and download the
    `leads-devon-cornwall` artifact from the run summary page — that's your
    CSV, with the `possible_website_found` column included if verification

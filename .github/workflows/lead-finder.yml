@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       towns:
-        description: "Space-separated town list (leave blank for the full list in config.py)"
+        description: "Comma-separated town list, e.g. Exeter,Newton Abbot (leave blank for the full list in config.py)"
         required: false
         default: ""
       categories:
-        description: "Space-separated category list (leave blank for the full list in config.py)"
+        description: "Comma-separated category list, e.g. hairdresser,beauty salon,nail salon (leave blank for the full list in config.py)"
         required: false
         default: ""
       limit:
@@ -45,9 +45,28 @@ jobs:
           INPUT_CATEGORIES: ${{ github.event.inputs.categories }}
           INPUT_LIMIT: ${{ github.event.inputs.limit }}
         run: |
+          # Comma-separated so multi-word towns/categories ("Newton Abbot",
+          # "beauty salon") survive as single entries instead of getting
+          # word-split apart.
+          split_trim() {
+            local IFS=','
+            read -ra parts <<< "$1"
+            for p in "${parts[@]}"; do
+              p="${p#"${p%%[![:space:]]*}"}"
+              p="${p%"${p##*[![:space:]]}"}"
+              echo "$p"
+            done
+          }
+
           ARGS=()
-          if [ -n "$INPUT_TOWNS" ]; then ARGS+=(--towns $INPUT_TOWNS); fi
-          if [ -n "$INPUT_CATEGORIES" ]; then ARGS+=(--categories $INPUT_CATEGORIES); fi
+          if [ -n "$INPUT_TOWNS" ]; then
+            mapfile -t TOWNS_ARR < <(split_trim "$INPUT_TOWNS")
+            ARGS+=(--towns "${TOWNS_ARR[@]}")
+          fi
+          if [ -n "$INPUT_CATEGORIES" ]; then
+            mapfile -t CATS_ARR < <(split_trim "$INPUT_CATEGORIES")
+            ARGS+=(--categories "${CATS_ARR[@]}")
+          fi
           if [ -n "$INPUT_LIMIT" ]; then ARGS+=(--limit "$INPUT_LIMIT"); fi
           python lead_finder.py "${ARGS[@]}"
 
